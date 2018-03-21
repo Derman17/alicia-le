@@ -88,12 +88,13 @@ public class DatabaseHelper {
     /**
      * Creates a post in the submitted region with the currently signed in user as its poster.
      *
-     * @param title    title of post
-     * @param body     main meat of post
-     * @param photoURL URL for the image of a post
-     * @param region   region where the post was created
-     * @return          a {@link Task} that has the new post's
-     *                  {@link DocumentReference} as a result
+     * @param title           title of post
+     * @param body            main meat of post
+     * @param photoURL        URL for the image of a post
+     * @param regionReference region where the post was created
+     * @param boardReference   {@link DocumentReference} of the board that the post is in
+     * @return                a {@link Task} that has the new post's
+     *                        {@link DocumentReference} as a result
      *
      * @throws CreatingPostException if called while {@link DatabaseHelper} is already
      *                               creating a post
@@ -102,7 +103,8 @@ public class DatabaseHelper {
     public Task<DocumentReference> createPost(final String title,
                                               final String body,
                                               final String photoURL,
-                                              final DocumentReference region)
+                                              final DocumentReference regionReference,
+                                              final DocumentReference boardReference)
             throws CreatingPostException, GettingRanksException {
 
         // Check if currently creating post and/or if the ranks are current
@@ -114,7 +116,7 @@ public class DatabaseHelper {
         creatingPost = true;
 
         // Get the region that the post if going to submitted to
-        return region.get().continueWithTask(new Continuation<DocumentSnapshot, Task<DocumentReference>>() {
+        return regionReference.get().continueWithTask(new Continuation<DocumentSnapshot, Task<DocumentReference>>() {
             @Override
             public Task<DocumentReference> then(@NonNull Task<DocumentSnapshot> task) throws Exception {
                 // Get the region uid
@@ -122,7 +124,7 @@ public class DatabaseHelper {
                 // Check if user is muted and/or banned from the region
                 if (!getUserRank(postRegionId).isMuted() && !getUserRank(postRegionId).isBanned()) {
                     // Create post with
-                    return rapidCreatePost(title, body, photoURL, region).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                    return rapidCreatePost(title, body, photoURL, regionReference, boardReference).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentReference> task) {
                             // Let everyone else know we aren't creating a post anymore
@@ -144,16 +146,17 @@ public class DatabaseHelper {
      * Creates post without checking any permissions or if currently creating post. Has
      * some post info auto filled based on current user and current date.
      *
-     * @param title    title of post
-     * @param body     main meat of post
-     * @param photoURL URL of post photo/thumbnail
-     * @param regionReference   region where the post was created
-     * @return          a {@link Task} that has the new post's
-     *                  {@link DocumentReference} as a result
+     * @param title           title of post
+     * @param body            main meat of post
+     * @param photoURL        URL of post photo/thumbnail
+     * @param regionReference region where the post was created
+     * @param boardReference   {@link DocumentReference} of the board that the post is in
+     * @return                a {@link Task} that has the new post's
+     *                        {@link DocumentReference} as a result
      */
-    public Task<DocumentReference> rapidCreatePost(String title, String body, String photoURL, DocumentReference regionReference) {
+    public Task<DocumentReference> rapidCreatePost(String title, String body, String photoURL, DocumentReference regionReference, DocumentReference boardReference) {
         return rapidCreatePost(title, body,
-                new Date(), photoURL, regionReference, 0L,
+                new Date(), photoURL, regionReference, boardReference, 0L,
                 db.collection("users").document(firebaseUser.getUid()),
                 firebaseUser.getDisplayName());
     }
@@ -166,6 +169,7 @@ public class DatabaseHelper {
      * @param date            date of post
      * @param photoURL        URL of post photo/thumbnail
      * @param regionReference {@link DocumentReference} of region post is in
+     * @param boardReference  {@link DocumentReference} of the board where the post is in
      * @param score           score of post
      * @param userReference   {@link DocumentReference} of user the post is from
      * @param opUsername      {@link String} username of the poster
@@ -174,11 +178,13 @@ public class DatabaseHelper {
      */
     public Task<DocumentReference> rapidCreatePost(String title, String body, Date date,
                                                    String photoURL,
-                                                   DocumentReference regionReference, Long score,
+                                                   DocumentReference regionReference,
+                                                   DocumentReference boardReference, Long score,
                                                    DocumentReference userReference,
                                                    String opUsername) {
         Post post = new Post(title, body,
-                date, photoURL, regionReference, score,
+                date, photoURL, regionReference,
+                boardReference, score,
                 userReference,
                 opUsername);
 

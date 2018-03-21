@@ -11,17 +11,19 @@ public class Post {
     private Date timestamp;
     private String photoURL;
     private DocumentReference region;
+    private DocumentReference board;
     private Long score;
     private DocumentReference op;
     private String opUsername;
     private String uid;
 
-    public Post(String title, String body, Date timestamp, String photoURL, DocumentReference region, Long score, DocumentReference op, String opUsername) {
+    public Post(String title, String body, Date timestamp, String photoURL, DocumentReference region, DocumentReference board, Long score, DocumentReference op, String opUsername) {
         this.title = title;
         this.body = body;
         this.timestamp = timestamp;
         this.photoURL = photoURL;
         this.region = region;
+        this.board = board;
         this.score = score;
         this.op = op;
         this.opUsername = opUsername;
@@ -70,6 +72,14 @@ public class Post {
 
     public void setRegion(DocumentReference region) {
         this.region = region;
+    }
+
+    public DocumentReference getBoard() {
+        return board;
+    }
+
+    public void setBoard(DocumentReference board) {
+        this.board = board;
     }
 
     public Long getScore() {
