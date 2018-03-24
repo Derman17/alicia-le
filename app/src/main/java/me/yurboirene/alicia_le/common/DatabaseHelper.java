@@ -135,7 +135,7 @@ public class DatabaseHelper {
      * @param body            main meat of post
      * @param photoURL        URL for the image of a post
      * @param regionReference region where the post was created
-     * @param boardReference   {@link DocumentReference} of the board that the post is in
+     * @param boardReference  {@link DocumentReference} of the board that the post is in
      * @return                a {@link Task} that has the new post's
      *                        {@link DocumentReference} as a result
      *
@@ -193,7 +193,7 @@ public class DatabaseHelper {
      * @param body            main meat of post
      * @param photoURL        URL of post photo/thumbnail
      * @param regionReference region where the post was created
-     * @param boardReference   {@link DocumentReference} of the board that the post is in
+     * @param boardReference  {@link DocumentReference} of the board that the post is in
      * @return                a {@link Task} that has the new post's
      *                        {@link DocumentReference} as a result
      */
