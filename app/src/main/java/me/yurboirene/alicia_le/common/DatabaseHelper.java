@@ -22,11 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import me.yurboirene.alicia_le.AlreadyUpvotedException;
+import me.yurboirene.alicia_le.Board;
 import me.yurboirene.alicia_le.CreatingPostException;
-import me.yurboirene.alicia_le.GettingRanksException;
+import me.yurboirene.alicia_le.GettingDataException;
 import me.yurboirene.alicia_le.InsufficientPremissionsException;
 import me.yurboirene.alicia_le.Post;
 import me.yurboirene.alicia_le.Rank;
+import me.yurboirene.alicia_le.Region;
 import me.yurboirene.alicia_le.UpvotingPostException;
 import me.yurboirene.alicia_le.User;
 
@@ -48,10 +50,17 @@ public class DatabaseHelper {
     private DocumentReference currentUserReference;
     private CollectionReference usersReference;
     private CollectionReference userRanksReference;
+    private CollectionReference regionsReference;
+    private CollectionReference boardsReference;
 
     private boolean upvotingPost, creatingPost, downvotingPost, upvotingComment;
     private SparseArray<Rank> userRanks;
     private boolean ranksCurrent;
+    private SparseArray<Region> regions;
+    private boolean regionsCurrent;
+    private SparseArray<Board> boards;
+    private boolean boardsCurrent;
+
 
     private DatabaseHelper(){
         db = FirebaseFirestore.getInstance();
@@ -61,7 +70,9 @@ public class DatabaseHelper {
         postsReference = db.collection("posts");
         usersReference = db.collection("users");
         currentUserReference = usersReference.document(firebaseUser.getUid());
-        userRanksReference = currentUserReference.collection("ranks");
+        userRanksReference = db.collection("ranks");
+        regionsReference = db.collection("regions");
+        boardsReference = db.collection("boards");
 
         // Set snapshot listener for the user's ranks
         userRanksReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -74,6 +85,38 @@ public class DatabaseHelper {
                     userRanks.put(Integer.valueOf(document.getId()), document.toObject(Rank.class));
                 }
                 ranksCurrent = true;
+            }
+        });
+
+        // Set snapshot listener for regions
+        regionsReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                regionsCurrent = false;
+                regions = new SparseArray<>();
+                List<DocumentSnapshot> documents = documentSnapshots.getDocuments();
+                for (DocumentSnapshot document : documents) {
+                    Region region = document.toObject(Region.class);
+                    region.setUid(Long.getLong(document.getId()));
+                    regions.put(Integer.valueOf(document.getId()), region);
+                }
+                regionsCurrent = true;
+            }
+        });
+
+        // Set snapshot listener for boards
+        boardsReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                boardsCurrent = false;
+                boards = new SparseArray<>();
+                List<DocumentSnapshot> documents = documentSnapshots.getDocuments();
+                for (DocumentSnapshot document : documents) {
+                    Board board = document.toObject(Board.class);
+                    board.setUid(Long.getLong(document.getId()));
+                    boards.put(Integer.valueOf(document.getId()), document.toObject(Board.class));
+                }
+                boardsCurrent = true;
             }
         });
     }
@@ -98,20 +141,20 @@ public class DatabaseHelper {
      *
      * @throws CreatingPostException if called while {@link DatabaseHelper} is already
      *                               creating a post
-     * @throws GettingRanksException if called before ranks are done updating
+     * @throws GettingDataException if called before ranks are done updating
      */
     public Task<DocumentReference> createPost(final String title,
                                               final String body,
                                               final String photoURL,
                                               final DocumentReference regionReference,
                                               final DocumentReference boardReference)
-            throws CreatingPostException, GettingRanksException {
+            throws CreatingPostException, GettingDataException {
 
         // Check if currently creating post and/or if the ranks are current
         if (creatingPost)
             throw new CreatingPostException();
         if (!ranksCurrent)
-            throw new GettingRanksException();
+            throw new GettingDataException();
 
         creatingPost = true;
 
@@ -456,9 +499,9 @@ public class DatabaseHelper {
      * @return              {@link Task} with result that's true if the post was deleted, false
      *                      if it doesn't exist
      */
-    public Task<Boolean> deletePost(final DocumentReference postReference) throws GettingRanksException, InsufficientPremissionsException {
+    public Task<Boolean> deletePost(final DocumentReference postReference) throws GettingDataException, InsufficientPremissionsException {
         if (!ranksCurrent)
-            throw new GettingRanksException();
+            throw new GettingDataException();
 
         // Gets post
         return postReference.get().continueWithTask(new Continuation<DocumentSnapshot, Task<Boolean>>() {
