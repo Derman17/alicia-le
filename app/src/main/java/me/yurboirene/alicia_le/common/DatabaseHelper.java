@@ -22,11 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import me.yurboirene.alicia_le.AlreadyUpvotedException;
+import me.yurboirene.alicia_le.Board;
 import me.yurboirene.alicia_le.CreatingPostException;
-import me.yurboirene.alicia_le.GettingRanksException;
+import me.yurboirene.alicia_le.GettingDataException;
 import me.yurboirene.alicia_le.InsufficientPremissionsException;
 import me.yurboirene.alicia_le.Post;
 import me.yurboirene.alicia_le.Rank;
+import me.yurboirene.alicia_le.Region;
 import me.yurboirene.alicia_le.UpvotingPostException;
 import me.yurboirene.alicia_le.User;
 
@@ -48,10 +50,17 @@ public class DatabaseHelper {
     private DocumentReference currentUserReference;
     private CollectionReference usersReference;
     private CollectionReference userRanksReference;
+    private CollectionReference regionsReference;
+    private CollectionReference boardsReference;
 
     private boolean upvotingPost, creatingPost, downvotingPost, upvotingComment;
     private SparseArray<Rank> userRanks;
     private boolean ranksCurrent;
+    private SparseArray<Region> regions;
+    private boolean regionsCurrent;
+    private SparseArray<Board> boards;
+    private boolean boardsCurrent;
+
 
     private DatabaseHelper(){
         db = FirebaseFirestore.getInstance();
@@ -61,7 +70,9 @@ public class DatabaseHelper {
         postsReference = db.collection("posts");
         usersReference = db.collection("users");
         currentUserReference = usersReference.document(firebaseUser.getUid());
-        userRanksReference = currentUserReference.collection("ranks");
+        userRanksReference = db.collection("ranks");
+        regionsReference = db.collection("regions");
+        boardsReference = db.collection("boards");
 
         // Set snapshot listener for the user's ranks
         userRanksReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -74,6 +85,38 @@ public class DatabaseHelper {
                     userRanks.put(Integer.valueOf(document.getId()), document.toObject(Rank.class));
                 }
                 ranksCurrent = true;
+            }
+        });
+
+        // Set snapshot listener for regions
+        regionsReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                regionsCurrent = false;
+                regions = new SparseArray<>();
+                List<DocumentSnapshot> documents = documentSnapshots.getDocuments();
+                for (DocumentSnapshot document : documents) {
+                    Region region = document.toObject(Region.class);
+                    region.setUid(Long.getLong(document.getId()));
+                    regions.put(Integer.valueOf(document.getId()), region);
+                }
+                regionsCurrent = true;
+            }
+        });
+
+        // Set snapshot listener for boards
+        boardsReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                boardsCurrent = false;
+                boards = new SparseArray<>();
+                List<DocumentSnapshot> documents = documentSnapshots.getDocuments();
+                for (DocumentSnapshot document : documents) {
+                    Board board = document.toObject(Board.class);
+                    board.setUid(Long.getLong(document.getId()));
+                    boards.put(Integer.valueOf(document.getId()), document.toObject(Board.class));
+                }
+                boardsCurrent = true;
             }
         });
     }
@@ -92,26 +135,26 @@ public class DatabaseHelper {
      * @param body            main meat of post
      * @param photoURL        URL for the image of a post
      * @param regionReference region where the post was created
-     * @param boardReference   {@link DocumentReference} of the board that the post is in
+     * @param boardReference  {@link DocumentReference} of the board that the post is in
      * @return                a {@link Task} that has the new post's
      *                        {@link DocumentReference} as a result
      *
      * @throws CreatingPostException if called while {@link DatabaseHelper} is already
      *                               creating a post
-     * @throws GettingRanksException if called before ranks are done updating
+     * @throws GettingDataException if called before ranks are done updating
      */
     public Task<DocumentReference> createPost(final String title,
                                               final String body,
                                               final String photoURL,
                                               final DocumentReference regionReference,
                                               final DocumentReference boardReference)
-            throws CreatingPostException, GettingRanksException {
+            throws CreatingPostException, GettingDataException {
 
         // Check if currently creating post and/or if the ranks are current
         if (creatingPost)
             throw new CreatingPostException();
         if (!ranksCurrent)
-            throw new GettingRanksException();
+            throw new GettingDataException();
 
         creatingPost = true;
 
@@ -150,7 +193,7 @@ public class DatabaseHelper {
      * @param body            main meat of post
      * @param photoURL        URL of post photo/thumbnail
      * @param regionReference region where the post was created
-     * @param boardReference   {@link DocumentReference} of the board that the post is in
+     * @param boardReference  {@link DocumentReference} of the board that the post is in
      * @return                a {@link Task} that has the new post's
      *                        {@link DocumentReference} as a result
      */
@@ -456,9 +499,9 @@ public class DatabaseHelper {
      * @return              {@link Task} with result that's true if the post was deleted, false
      *                      if it doesn't exist
      */
-    public Task<Boolean> deletePost(final DocumentReference postReference) throws GettingRanksException, InsufficientPremissionsException {
+    public Task<Boolean> deletePost(final DocumentReference postReference) throws GettingDataException, InsufficientPremissionsException {
         if (!ranksCurrent)
-            throw new GettingRanksException();
+            throw new GettingDataException();
 
         // Gets post
         return postReference.get().continueWithTask(new Continuation<DocumentSnapshot, Task<Boolean>>() {
@@ -510,8 +553,11 @@ public class DatabaseHelper {
      * @return {@link SparseArray} of {@link Rank}s that the user has with the keys being
      *         the uid of the region the {@link Rank} applies to
      */
-    public SparseArray<Rank> getUserRanks() {
-        return userRanks;
+    public SparseArray<Rank> getUserRanks() throws GettingDataException {
+        if (ranksCurrent)
+            return userRanks;
+        else
+            throw new GettingDataException();
     }
 
     /**
@@ -520,7 +566,75 @@ public class DatabaseHelper {
      * @param regionId uid of region the {@link Rank} is in
      * @return         {@link Rank} the corresponds the region uid provided
      */
-    public Rank getUserRank(int regionId) {
-        return getUserRanks().get(regionId);
+    public Rank getUserRank(int regionId) throws GettingDataException {
+        if (ranksCurrent)
+            return userRanks.get(regionId);
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Gets {@link Region}s as {@link SparseArray}
+     *
+     * @return {@link SparseArray} of {@link Region}s that exist with the keys being
+     *         the uid of the regions
+     */
+    public SparseArray<Region> getRegions() throws GettingDataException {
+        if (regionsCurrent)
+            return regions;
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Gets {@link Region} from uid
+     *
+     * @param regionId uid of region
+     * @return         {@link Region} with the uid provided
+     */
+    public Region getRegion(int regionId) throws GettingDataException {
+        if (regionsCurrent)
+            return regions.get(regionId);
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Finds if the region exists
+     *
+     * @param  regionId id of {@link Region} to find
+     * @return true if {@link Region} exists, false if not
+     */
+    public boolean regionExists(int regionId) throws GettingDataException {
+        if (regionsCurrent)
+            return regions.get(regionId) != null;
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Gets {@link Board}s as {@link SparseArray}
+     *
+     * @return {@link SparseArray} of {@link Board}s that exist with the keys being
+     *         the uid of the regions
+     */
+    public SparseArray<Board> getBoards() throws GettingDataException {
+        if (boardsCurrent)
+            return boards;
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Gets {@link Board} from uid
+     *
+     * @param boardId uid of region
+     * @return        {@link Board} with the uid provided
+     */
+    public Board getBoard(int boardId) throws GettingDataException {
+        if (boardsCurrent)
+            return boards.get(boardId);
+        else
+            throw new GettingDataException();
     }
 }
