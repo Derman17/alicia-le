@@ -553,8 +553,11 @@ public class DatabaseHelper {
      * @return {@link SparseArray} of {@link Rank}s that the user has with the keys being
      *         the uid of the region the {@link Rank} applies to
      */
-    public SparseArray<Rank> getUserRanks() {
-        return userRanks;
+    public SparseArray<Rank> getUserRanks() throws GettingDataException {
+        if (ranksCurrent)
+            return userRanks;
+        else
+            throw new GettingDataException();
     }
 
     /**
@@ -563,7 +566,75 @@ public class DatabaseHelper {
      * @param regionId uid of region the {@link Rank} is in
      * @return         {@link Rank} the corresponds the region uid provided
      */
-    public Rank getUserRank(int regionId) {
-        return getUserRanks().get(regionId);
+    public Rank getUserRank(int regionId) throws GettingDataException {
+        if (ranksCurrent)
+            return userRanks.get(regionId);
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Gets {@link Region}s as {@link SparseArray}
+     *
+     * @return {@link SparseArray} of {@link Region}s that exist with the keys being
+     *         the uid of the regions
+     */
+    public SparseArray<Region> getRegions() throws GettingDataException {
+        if (regionsCurrent)
+            return regions;
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Gets {@link Region} from uid
+     *
+     * @param regionId uid of region
+     * @return         {@link Region} with the uid provided
+     */
+    public Region getRegion(int regionId) throws GettingDataException {
+        if (regionsCurrent)
+            return regions.get(regionId);
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Finds if the region exists
+     *
+     * @param  regionId id of {@link Region} to find
+     * @return true if {@link Region} exists, false if not
+     */
+    public boolean regionExists(int regionId) throws GettingDataException {
+        if (regionsCurrent)
+            return regions.get(regionId) != null;
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Gets {@link Board}s as {@link SparseArray}
+     *
+     * @return {@link SparseArray} of {@link Board}s that exist with the keys being
+     *         the uid of the regions
+     */
+    public SparseArray<Board> getBoards() throws GettingDataException {
+        if (boardsCurrent)
+            return boards;
+        else
+            throw new GettingDataException();
+    }
+
+    /**
+     * Gets {@link Board} from uid
+     *
+     * @param boardId uid of region
+     * @return        {@link Board} with the uid provided
+     */
+    public Board getBoard(int boardId) throws GettingDataException {
+        if (boardsCurrent)
+            return boards.get(boardId);
+        else
+            throw new GettingDataException();
     }
 }
