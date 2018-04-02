@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_local"
+        android:enabled="true"
+        android:icon="@drawable/fui_idp_button_background_email"
+        android:title="Local"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_state"
+        android:enabled="true"
+        android:icon="@color/common_google_signin_btn_text_light_default"
+        android:title="State"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_national"
+        android:enabled="true"
+        android:icon="@color/common_google_signin_btn_text_dark_default"
+        android:title="National"
+        app:showAsAction="ifRoom" />
+</menu>

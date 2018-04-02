@@ -3,7 +3,7 @@ package me.yurboirene.alicia_le;
 public class Region {
 
     private String type;
-    private Short timezone;
+    private Integer timezone;
     private String name;
     private Long uid;
 
@@ -11,7 +11,7 @@ public class Region {
 
     }
 
-    public Region(String type, Short timezone, String name, Long uid) {
+    public Region(String type, Integer timezone, String name, Long uid) {
         this.type = type;
         this.timezone = timezone;
         this.name = name;
@@ -26,11 +26,11 @@ public class Region {
         this.type = type;
     }
 
-    public Short getTimezone() {
+    public Integer getTimezone() {
         return timezone;
     }
 
-    public void setTimezone(Short timezone) {
+    public void setTimezone(Integer timezone) {
         this.timezone = timezone;
     }
 

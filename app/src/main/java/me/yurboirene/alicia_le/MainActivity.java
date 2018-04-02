@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() != null) {
-            // already signed in
+            startActivity(new Intent(this, MainScreenActivity.class));
         } else {
             startActivityForResult(
                     AuthUI.getInstance()
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Successfully signed in
             if (resultCode == RESULT_OK) {
-                //startActivity(SignedInActivity.createIntent(this, response));
+                startActivity(new Intent(this, MainScreenActivity.class));
                 finish();
             } else {
                 // Sign in failed

@@ -61,6 +61,7 @@ public class DatabaseHelper {
     private SparseArray<Board> boards;
     private boolean boardsCurrent;
 
+    public Rank defaultRank = new Rank(false, false, true, false, false, true, true, false, false, false, -1);
 
     private DatabaseHelper(){
         db = FirebaseFirestore.getInstance();
@@ -97,8 +98,7 @@ public class DatabaseHelper {
                 List<DocumentSnapshot> documents = documentSnapshots.getDocuments();
                 for (DocumentSnapshot document : documents) {
                     Region region = document.toObject(Region.class);
-                    region.setUid(Long.getLong(document.getId()));
-                    regions.put(Integer.valueOf(document.getId()), region);
+                    regions.put(region.getUid().intValue(), region);
                 }
                 regionsCurrent = true;
             }
@@ -113,8 +113,7 @@ public class DatabaseHelper {
                 List<DocumentSnapshot> documents = documentSnapshots.getDocuments();
                 for (DocumentSnapshot document : documents) {
                     Board board = document.toObject(Board.class);
-                    board.setUid(Long.getLong(document.getId()));
-                    boards.put(Integer.valueOf(document.getId()), document.toObject(Board.class));
+                    boards.put(board.getUid().intValue(), document.toObject(Board.class));
                 }
                 boardsCurrent = true;
             }
@@ -135,7 +134,7 @@ public class DatabaseHelper {
      * @param body            main meat of post
      * @param photoURL        URL for the image of a post
      * @param regionReference region where the post was created
-     * @param boardReference  {@link DocumentReference} of the board that the post is in
+     * @param boardid         id of board the post is in
      * @return                a {@link Task} that has the new post's
      *                        {@link DocumentReference} as a result
      *
@@ -147,7 +146,7 @@ public class DatabaseHelper {
                                               final String body,
                                               final String photoURL,
                                               final DocumentReference regionReference,
-                                              final DocumentReference boardReference)
+                                              final Long boardid)
             throws CreatingPostException, GettingDataException {
 
         // Check if currently creating post and/or if the ranks are current
@@ -167,7 +166,7 @@ public class DatabaseHelper {
                 // Check if user is muted and/or banned from the region
                 if (!getUserRank(postRegionId).isMuted() && !getUserRank(postRegionId).isBanned()) {
                     // Create post with
-                    return rapidCreatePost(title, body, photoURL, regionReference, boardReference).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                    return rapidCreatePost(title, body, photoURL, regionReference, boardid).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentReference> task) {
                             // Let everyone else know we aren't creating a post anymore
@@ -175,6 +174,7 @@ public class DatabaseHelper {
                         }
                     });
                 } else {
+                    creatingPost = false;
                     // They are banned and/or muted
                     if (getUserRank(postRegionId).isBanned())
                         throw new InsufficientPremissionsException("User is banned from this region");
@@ -193,13 +193,12 @@ public class DatabaseHelper {
      * @param body            main meat of post
      * @param photoURL        URL of post photo/thumbnail
      * @param regionReference region where the post was created
-     * @param boardReference  {@link DocumentReference} of the board that the post is in
      * @return                a {@link Task} that has the new post's
      *                        {@link DocumentReference} as a result
      */
-    public Task<DocumentReference> rapidCreatePost(String title, String body, String photoURL, DocumentReference regionReference, DocumentReference boardReference) {
+    public Task<DocumentReference> rapidCreatePost(String title, String body, String photoURL, DocumentReference regionReference, Long boardid) {
         return rapidCreatePost(title, body,
-                new Date(), photoURL, regionReference, boardReference, 0L,
+                new Date(), photoURL, regionReference, boardid, 0L,
                 db.collection("users").document(firebaseUser.getUid()),
                 firebaseUser.getDisplayName());
     }
@@ -212,7 +211,7 @@ public class DatabaseHelper {
      * @param date            date of post
      * @param photoURL        URL of post photo/thumbnail
      * @param regionReference {@link DocumentReference} of region post is in
-     * @param boardReference  {@link DocumentReference} of the board where the post is in
+     * @param boardid         id of board the post is in
      * @param score           score of post
      * @param userReference   {@link DocumentReference} of user the post is from
      * @param opUsername      {@link String} username of the poster
@@ -222,12 +221,12 @@ public class DatabaseHelper {
     public Task<DocumentReference> rapidCreatePost(String title, String body, Date date,
                                                    String photoURL,
                                                    DocumentReference regionReference,
-                                                   DocumentReference boardReference, Long score,
+                                                   Long boardid, Long score,
                                                    DocumentReference userReference,
                                                    String opUsername) {
         Post post = new Post(title, body,
                 date, photoURL, regionReference,
-                boardReference, score,
+                boardid, score,
                 userReference,
                 opUsername);
 
@@ -394,6 +393,7 @@ public class DatabaseHelper {
                     return postReference.get().continueWith(new Continuation<DocumentSnapshot, Boolean>() {
                         @Override
                         public Boolean then(@NonNull Task<DocumentSnapshot> task) throws Exception {
+                            upvotingPost = false;
                             return true;
                         }
                     });
@@ -419,6 +419,7 @@ public class DatabaseHelper {
                                             return userReference.collection("upvotedPosts").document(postReference.getId()).delete().continueWith(new Continuation<Void, Boolean>() {
                                                 @Override
                                                 public Boolean then(@NonNull Task<Void> task) throws Exception {
+                                                    upvotingPost = false;
                                                     return false;
                                                 }
                                             });
@@ -568,7 +569,7 @@ public class DatabaseHelper {
      */
     public Rank getUserRank(int regionId) throws GettingDataException {
         if (ranksCurrent)
-            return userRanks.get(regionId);
+            return userRanks.get(regionId) == null ? defaultRank : userRanks.get(regionId);
         else
             throw new GettingDataException();
     }
