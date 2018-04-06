@@ -147,7 +147,15 @@ public class BoardFragment extends Fragment {
             subHeader.setText("Error!");
         }
 
+        MainScreenActivity.setCurrentBoard(boardId.toString());
+
         updateData();
+    }
+
+    @Override
+    public void onPause() {
+        MainScreenActivity.setCurrentBoard(null);
+        super.onPause();
     }
 
     private void updateData() {

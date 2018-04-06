@@ -10,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,7 +21,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import me.yurboirene.alicia_le.common.Common;
 import me.yurboirene.alicia_le.common.DatabaseHelper;
 
 
@@ -94,6 +92,8 @@ public class PostFragment extends Fragment {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 post = task.getResult().toObject(Post.class);
+                post.setUid(task.getResult().getId());
+                MainScreenActivity.setCurrentPost(post);
                 mainHeader.setText(post.getTitle());
                 mainSub.setText(String.format("By: %s", post.getOpUsername()));
                 bodyText.setText(post.getBody());
@@ -118,6 +118,12 @@ public class PostFragment extends Fragment {
                 }
             }
         });
+    }
+
+    @Override
+    public void onPause() {
+        MainScreenActivity.setCurrentPost(null);
+        super.onPause();
     }
 
     // TODO: Rename method, update argument and hook method into UI event

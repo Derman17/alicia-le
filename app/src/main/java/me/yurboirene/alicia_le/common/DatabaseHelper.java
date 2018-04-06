@@ -25,7 +25,7 @@ import me.yurboirene.alicia_le.AlreadyUpvotedException;
 import me.yurboirene.alicia_le.Board;
 import me.yurboirene.alicia_le.CreatingPostException;
 import me.yurboirene.alicia_le.GettingDataException;
-import me.yurboirene.alicia_le.InsufficientPremissionsException;
+import me.yurboirene.alicia_le.InsufficientPermissionsException;
 import me.yurboirene.alicia_le.Post;
 import me.yurboirene.alicia_le.Rank;
 import me.yurboirene.alicia_le.Region;
@@ -71,7 +71,7 @@ public class DatabaseHelper {
         postsReference = db.collection("posts");
         usersReference = db.collection("users");
         currentUserReference = usersReference.document(firebaseUser.getUid());
-        userRanksReference = db.collection("ranks");
+        userRanksReference = currentUserReference.collection("ranks");
         regionsReference = db.collection("regions");
         boardsReference = db.collection("boards");
 
@@ -177,9 +177,9 @@ public class DatabaseHelper {
                     creatingPost = false;
                     // They are banned and/or muted
                     if (getUserRank(postRegionId).isBanned())
-                        throw new InsufficientPremissionsException("User is banned from this region");
+                        throw new InsufficientPermissionsException("User is banned from this region");
                     else
-                        throw new InsufficientPremissionsException("User is muted in this region");
+                        throw new InsufficientPermissionsException("User is muted in this region");
                 }
             }
         });
@@ -500,7 +500,7 @@ public class DatabaseHelper {
      * @return              {@link Task} with result that's true if the post was deleted, false
      *                      if it doesn't exist
      */
-    public Task<Boolean> deletePost(final DocumentReference postReference) throws GettingDataException, InsufficientPremissionsException {
+    public Task<Boolean> deletePost(final DocumentReference postReference) throws GettingDataException, InsufficientPermissionsException {
         if (!ranksCurrent)
             throw new GettingDataException();
 
@@ -537,7 +537,7 @@ public class DatabaseHelper {
                                     }
                                 });
                             } else {
-                                throw new InsufficientPremissionsException("User does not have " +
+                                throw new InsufficientPermissionsException("User does not have " +
                                         "permission to delete posts in this region");
                             }
                         }
