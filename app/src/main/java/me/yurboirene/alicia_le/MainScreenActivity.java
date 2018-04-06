@@ -27,7 +27,8 @@ public class MainScreenActivity extends AppCompatActivity implements
         MainViewFragment.OnFragmentInteractionListener,
         BoardFragment.OnFragmentInteractionListener,
         PostFragment.OnFragmentInteractionListener,
-        CreatePostFragment.OnFragmentInteractionListener {
+        CreatePostFragment.OnFragmentInteractionListener,
+        SettingsFragment.OnFragmentInteractionListener {
 
     private static Post currentPost;
     private static String currentBoard;
