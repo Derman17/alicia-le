@@ -138,11 +138,8 @@ public class BoardFragment extends Fragment {
         TextView subHeader = getActivity().findViewById(R.id.mainSubText);
         try {
             mainHeader.setText(DatabaseHelper.getInstance().getBoard(boardId.intValue()).getName());
-        } catch (GettingDataException e) {
-            mainHeader.setText("Error!");
-        }
-        try {
             subHeader.setText(DatabaseHelper.getInstance().getRegion(DatabaseHelper.getInstance().getBoard(boardId.intValue()).getRegionuid().intValue()).getName());
+            MainScreenActivity.setCurrentRegion(String.valueOf(DatabaseHelper.getInstance().getBoard(boardId.intValue()).getRegionuid()));
         } catch (GettingDataException e) {
             subHeader.setText("Error!");
         }

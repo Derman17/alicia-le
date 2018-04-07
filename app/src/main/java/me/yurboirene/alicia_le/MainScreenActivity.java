@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 import me.yurboirene.alicia_le.common.DatabaseHelper;
 
@@ -44,6 +45,10 @@ public class MainScreenActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main_screen);
 
         db = FirebaseFirestore.getInstance();
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(false)
+                .build();
+        db.setFirestoreSettings(settings);
 
         db.collection("users").document(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -104,6 +109,8 @@ public class MainScreenActivity extends AppCompatActivity implements
                     ft.addToBackStack(null);
                     ft.replace(R.id.frameLayout, CreatePostFragment.newInstance(currentRegion, currentBoard))
                             .commit();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error!", Toast.LENGTH_SHORT).show();
                 }
                 return true;
             default:

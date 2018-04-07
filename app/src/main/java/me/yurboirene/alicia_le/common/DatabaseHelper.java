@@ -57,6 +57,7 @@ public class DatabaseHelper {
     private SparseArray<Rank> userRanks;
     private boolean ranksCurrent;
     private SparseArray<Region> regions;
+    private SparseArray<DocumentReference> regionsRefs;
     private boolean regionsCurrent;
     private SparseArray<Board> boards;
     private boolean boardsCurrent;
@@ -95,10 +96,12 @@ public class DatabaseHelper {
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
                 regionsCurrent = false;
                 regions = new SparseArray<>();
+                regionsRefs = new SparseArray<>();
                 List<DocumentSnapshot> documents = documentSnapshots.getDocuments();
                 for (DocumentSnapshot document : documents) {
                     Region region = document.toObject(Region.class);
                     regions.put(region.getUid().intValue(), region);
+                    regionsRefs.put(region.getUid().intValue(), document.getReference());
                 }
                 regionsCurrent = true;
             }
@@ -587,7 +590,7 @@ public class DatabaseHelper {
             throw new GettingDataException();
     }
 
-    public CharSequence[] getRanksNames() throws GettingDataException {
+    public CharSequence[] getRegionsNames() throws GettingDataException {
         if (regionsCurrent) {
             SparseArray<Region> regions = getRegions();
             CharSequence[] output = new CharSequence[regions.size()];
@@ -612,6 +615,14 @@ public class DatabaseHelper {
             return regions.get(regionId);
         else
             throw new GettingDataException();
+    }
+
+    public SparseArray<DocumentReference> getRegionsRefs() {
+        return regionsRefs;
+    }
+
+    public DocumentReference getRegionRef(int i) {
+        return regionsRefs.get(i);
     }
 
     /**

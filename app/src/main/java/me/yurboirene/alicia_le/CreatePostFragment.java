@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -83,7 +84,7 @@ public class CreatePostFragment extends Fragment {
         TextView boardText = getActivity().findViewById(R.id.newPostBoardText);
 
         try {
-            db.collection("regions").document(regionId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            DatabaseHelper.getInstance().getRegionRef(Integer.valueOf(regionId)).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     regionText.setText(String.format("Region: %s", task.getResult().getString("name")));
@@ -112,8 +113,13 @@ public class CreatePostFragment extends Fragment {
             DatabaseHelper.getInstance().createPost(newPostTitleEditText.getText().toString(),
                     newPostBodyEditText.getText().toString(),
                     newPostImageURLEditText.getText().toString(),
-                    db.collection("regions").document(regionId),
-                    Long.valueOf(boardId));
+                    DatabaseHelper.getInstance().getRegionRef(Integer.valueOf(regionId)),
+                    Long.valueOf(boardId)).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentReference> task) {
+                    getActivity().onBackPressed();
+                }
+            });
         } catch (CreatingPostException | GettingDataException e) {
             Toast.makeText(getContext(), "Wait a sec!", Toast.LENGTH_SHORT).show();
         }
