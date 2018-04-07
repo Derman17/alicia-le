@@ -120,12 +120,6 @@ public class PostFragment extends Fragment {
         });
     }
 
-    @Override
-    public void onPause() {
-        MainScreenActivity.setCurrentPost(null);
-        super.onPause();
-    }
-
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {

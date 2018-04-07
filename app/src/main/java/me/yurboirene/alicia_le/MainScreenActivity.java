@@ -100,6 +100,8 @@ public class MainScreenActivity extends AppCompatActivity implements
                     } catch (GettingDataException e) {
                         Toast.makeText(getApplicationContext(), "Wait a sec!", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error!", Toast.LENGTH_SHORT).show();
                 }
                 return true;
             case R.id.option_new_post:
