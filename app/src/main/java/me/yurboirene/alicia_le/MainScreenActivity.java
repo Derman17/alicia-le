@@ -1,5 +1,6 @@
 package me.yurboirene.alicia_le;
 
+import android.app.Activity;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
@@ -137,5 +138,13 @@ public class MainScreenActivity extends AppCompatActivity implements
 
     public static void setCurrentRegion(String currentRegion) {
         MainScreenActivity.currentRegion = currentRegion;
+    }
+
+    public void openSettings(View view) {
+        FragmentManager manager = getSupportFragmentManager();
+        FragmentTransaction ft = manager.beginTransaction();
+        ft.addToBackStack(null);
+        ft.replace(R.id.frameLayout, new SettingsFragment())
+                .commit();
     }
 }

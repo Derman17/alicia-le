@@ -587,6 +587,20 @@ public class DatabaseHelper {
             throw new GettingDataException();
     }
 
+    public CharSequence[] getRanksNames() throws GettingDataException {
+        if (regionsCurrent) {
+            SparseArray<Region> regions = getRegions();
+            CharSequence[] output = new CharSequence[regions.size()];
+            for (int i = 1; i < regions.size() + 1; i++) {
+
+                output[i - 1] = regions.get(i).getName();
+            }
+
+            return output;
+        } else
+            throw new GettingDataException();
+    }
+
     /**
      * Gets {@link Region} from uid
      *

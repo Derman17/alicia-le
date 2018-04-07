@@ -3,13 +3,27 @@ package me.yurboirene.alicia_le;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
 import android.support.v4.app.Fragment;
+import android.support.v7.preference.CheckBoxPreference;
+import android.support.v7.preference.EditTextPreference;
+import android.support.v7.preference.ListPreference;
+import android.support.v7.preference.Preference;
+import android.support.v7.preference.PreferenceCategory;
+import android.support.v7.preference.PreferenceFragmentCompat;
+import android.support.v7.preference.PreferenceScreen;
+import android.support.v7.view.ContextThemeWrapper;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class SettingsFragment extends PreferenceFragment {
+import java.util.Arrays;
+
+import me.yurboirene.alicia_le.R;
+import me.yurboirene.alicia_le.common.DatabaseHelper;
+
+public class SettingsFragment extends PreferenceFragmentCompat {
+
 
     private OnFragmentInteractionListener mListener;
 
@@ -21,14 +35,47 @@ public class SettingsFragment extends PreferenceFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        addPreferencesFromResource(R.xml.preferences);
+        Context context = getActivity();
+
+        PreferenceScreen rootPreferenceScreen = getPreferenceManager().createPreferenceScreen(context);
+        setPreferenceScreen(rootPreferenceScreen);
+
+        CharSequence[] entries = new CharSequence[0];
+        try {
+            entries = DatabaseHelper.getInstance().getRanksNames();
+        } catch (GettingDataException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        CharSequence[] entryValues = new CharSequence[entries.length];
+
+        for (int i = 1; i < entries.length + 1; i++) {
+            entryValues[i - 1] = String.valueOf(i);
+        }
+
+        TypedValue themeTypedValue = new TypedValue();
+        context.getTheme().resolveAttribute(R.attr.preferenceTheme, themeTypedValue, true);
+        ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, themeTypedValue.resourceId);
+
+        // We instance each Preference using our ContextThemeWrapper object
+        PreferenceCategory preferenceCategory = new PreferenceCategory(contextThemeWrapper);
+        preferenceCategory.setTitle("Category test");
+
+        ListPreference listPref = new ListPreference(contextThemeWrapper);
+        listPref.setKey("listPref");
+        listPref.setTitle("ListPref test");
+        listPref.setEntries(entries);
+        listPref.setEntryValues(entryValues);
+
+        getPreferenceScreen().addPreference(preferenceCategory);
+
+        preferenceCategory.addPreference(listPref);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_settings, container, false);
+    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
