@@ -64,7 +64,7 @@ public class DatabaseHelper {
 
     public Rank defaultRank = new Rank(false, false, true, false, false, true, true, false, false, false, -1);
 
-    private DatabaseHelper(){
+    private DatabaseHelper() {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         firebaseUser = auth.getCurrentUser();
@@ -129,7 +129,7 @@ public class DatabaseHelper {
         }
         return myObj;
     }
-    
+
     /**
      * Creates a post in the submitted region with the currently signed in user as its poster.
      *
@@ -202,7 +202,7 @@ public class DatabaseHelper {
     public Task<DocumentReference> rapidCreatePost(String title, String body, String photoURL, DocumentReference regionReference, Long boardid) {
         return rapidCreatePost(title, body,
                 new Date(), photoURL, regionReference, boardid, 0L,
-                db.collection("users").document(firebaseUser.getUid()),
+                currentUserReference,
                 firebaseUser.getDisplayName());
     }
 
@@ -379,7 +379,6 @@ public class DatabaseHelper {
      *                      not upvoted (so nothing was done) and false if the post
      *                      was already upvoted (and is now not)
      */
-
     public Task<Boolean> removePostToUserUpvoted(final DocumentReference postReference, final DocumentReference userReference) {
         // Gets post from user's upvoted posts
         return userReference.collection("upvotedPosts").document(postReference.getId()).get().continueWithTask(new Continuation<DocumentSnapshot, Task<Boolean>>() {
