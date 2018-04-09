@@ -9,4 +9,9 @@
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
 
+    <style name="Halloween" parent="android:Theme.Material" >
+        <item name="android:colorAccent">@color/accent_material_dark</item>
+        <item name="android:statusBarColor">?android:attr/colorAccent</item>
+    </style>
+
 </resources>

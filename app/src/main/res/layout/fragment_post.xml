@@ -22,10 +22,12 @@
 
                 <ImageButton
                     android:id="@+id/downvoteButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="50dp"
                     android:layout_height="0dp"
                     android:layout_marginTop="16dp"
-                    android:src="@mipmap/ic_launcher_round"
+                    android:background="@null"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/downvote"
                     app:layout_constraintBottom_toBottomOf="@+id/postKarma"
                     app:layout_constraintLeft_toRightOf="@+id/postKarma"
                     app:layout_constraintTop_toBottomOf="@+id/bodyText" />
@@ -47,10 +49,12 @@
 
                 <ImageButton
                     android:id="@+id/upvoteButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="50dp"
                     android:layout_height="0dp"
                     android:layout_marginTop="16dp"
-                    android:src="@drawable/fui_done_check_mark"
+                    android:background="@null"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/upvote"
                     app:layout_constraintBottom_toBottomOf="@+id/postKarma"
                     app:layout_constraintRight_toLeftOf="@+id/postKarma"
                     app:layout_constraintTop_toBottomOf="@+id/bodyText" />
