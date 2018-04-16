@@ -128,6 +128,12 @@ public class PostFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        MainScreenActivity.setCurrentPost(null);
+        super.onPause();
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {

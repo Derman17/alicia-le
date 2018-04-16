@@ -80,7 +80,7 @@ public class MainScreenActivity extends AppCompatActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-            case R.id.option_delete:
+            case R.id.option_delete: {
                 if (currentPost != null) {
                     try {
                         DatabaseHelper.getInstance().deletePost(db.collection("posts").document(currentPost.getUid())).addOnCompleteListener(new OnCompleteListener<Boolean>() {
@@ -104,7 +104,8 @@ public class MainScreenActivity extends AppCompatActivity implements
                     Toast.makeText(getApplicationContext(), "Error!", Toast.LENGTH_SHORT).show();
                 }
                 return true;
-            case R.id.option_new_post:
+            }
+            case R.id.option_new_post: {
                 if (currentRegion != null && currentBoard != null) {
                     FragmentManager manager = getSupportFragmentManager();
                     FragmentTransaction ft = manager.beginTransaction();
@@ -115,8 +116,10 @@ public class MainScreenActivity extends AppCompatActivity implements
                     Toast.makeText(getApplicationContext(), "Error!", Toast.LENGTH_SHORT).show();
                 }
                 return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
+
         }
     }
 

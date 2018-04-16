@@ -36,7 +36,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:drawable/ic_menu_manage"
-        android:onClick="openSettings" />
+        android:onClick="openSettings"
+        android:clickable="false" />
 
     <FrameLayout
         android:id="@+id/frameLayout"
